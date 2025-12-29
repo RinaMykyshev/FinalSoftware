@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+    <!-- 1) Создать админа, только если его еще нет -->
+    <changeSet id="006-seed-admin-user" author="renat">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM users WHERE email='admin@admin.com'
+            </sqlCheck>
+        </preConditions>
+
+        <insert tableName="users">
+            <column name="email" value="admin@admin.com"/>
+            <column name="password"
+                    value="$2a$12$rYNztV5UseK6icir3EmwJOSrjbHUwyV0m49yrwZaMbVqYJTUbA9t2"/>
+            <column name="blocked" valueBoolean="false"/>
+        </insert>
+    </changeSet>
+
+    <!-- 2) Выдать ему роль админа, только если связи еще нет -->
+    <changeSet id="007-seed-admin-user-role" author="renat">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                FROM users_roles ur
+                         JOIN users u ON u.id = ur.user_id
+                         JOIN roles r ON r.id = ur.roles_id
+                WHERE u.email='admin@admin.com' AND r.name='ROLE_ADMIN'
+            </sqlCheck>
+        </preConditions>
+
+        <insert tableName="users_roles">
+            <column name="user_id"
+                    valueComputed="(SELECT id FROM users WHERE email='admin@admin.com')"/>
+            <column name="roles_id"
+                    valueComputed="(SELECT id FROM roles WHERE name='ROLE_ADMIN')"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

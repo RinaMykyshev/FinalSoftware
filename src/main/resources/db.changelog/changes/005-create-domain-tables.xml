@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+    <!-- Domain tables: course, student, enrollment -->
+
+    <changeSet id="005-1-create-course" author="renat">
+        <createTable tableName="course">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="005-2-create-student" author="renat">
+        <createTable tableName="student">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="005-3-create-enrollment" author="renat">
+        <createTable tableName="enrollment">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="student_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="course_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint tableName="enrollment"
+                             columnNames="student_id, course_id"
+                             constraintName="uk_enrollment_student_course"/>
+
+        <addForeignKeyConstraint baseTableName="enrollment"
+                                 baseColumnNames="student_id"
+                                 referencedTableName="student"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_enrollment_student"/>
+
+        <addForeignKeyConstraint baseTableName="enrollment"
+                                 baseColumnNames="course_id"
+                                 referencedTableName="course"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_enrollment_course"/>
+    </changeSet>
+
+    <!-- Demo data for easier testing (realistic names, no dummy placeholders) -->
+    <changeSet id="005-4-seed-demo-domain-data" author="renat">
+        <insert tableName="course">
+            <column name="name" value="Software Engineering"/>
+        </insert>
+        <insert tableName="course">
+            <column name="name" value="Databases"/>
+        </insert>
+        <insert tableName="course">
+            <column name="name" value="Algorithms and Data Structures"/>
+        </insert>
+
+        <insert tableName="student">
+            <column name="name" value="Amina Sadykova"/>
+        </insert>
+        <insert tableName="student">
+            <column name="name" value="Daniyar Tulegenov"/>
+        </insert>
+        <insert tableName="student">
+            <column name="name" value="Madinah Nurpeisova"/>
+        </insert>
+
+        <insert tableName="enrollment">
+            <column name="student_id" valueComputed="(SELECT id FROM student WHERE name='Amina Sadykova')"/>
+            <column name="course_id" valueComputed="(SELECT id FROM course WHERE name='Software Engineering')"/>
+        </insert>
+
+        <insert tableName="enrollment">
+            <column name="student_id" valueComputed="(SELECT id FROM student WHERE name='Daniyar Tulegenov')"/>
+            <column name="course_id" valueComputed="(SELECT id FROM course WHERE name='Databases')"/>
+        </insert>
+
+        <insert tableName="enrollment">
+            <column name="student_id" valueComputed="(SELECT id FROM student WHERE name='Madinah Nurpeisova')"/>
+            <column name="course_id" valueComputed="(SELECT id FROM course WHERE name='Algorithms and Data Structures')"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
